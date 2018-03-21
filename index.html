@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <style>
+	* { 
+		margin: 0px;
+		padding: 0px;
+	}
+
+	body{
+		overflow: hidden;
+	}	
+  </style> 		
+</head>
+<body>
+
+<canvas id="canvas-webgl" class="p-canvas-webgl"></canvas>
+
+
+<script src='jsScene/three.js'></script>
+<script src='jsScene/EffectComposer.js'></script>
+<script src='jsScene/ShaderPass.js'></script>
+<script src='jsScene/RenderPass.js'></script>
+<script src='jsScene/CopyShader.js'></script>
+<script src="jsScene/ScreenShader.js"></script>
+<script src="jsScene/ScreenShader2.js"></script>
+<script src='jsScene/OBJLoader.js'></script>
+<script src="jsScene/load.js"></script>
+<script src="jsScene/scene.js"></script>
+
+
+
+
+<!----------------------------------------->
+<!--- CUSTOM CODE can be deleted ---------->
+<!----------------------------------------->
+
+<div id = 'bar' 
+	 style = ' 
+		width: 0%;
+		background-color: #37b09e; 
+		position: absolute; 
+		top: 100px; 
+		left: 10px; 
+		z-index: 2000; 
+		height: 3px; 
+		display: table; 
+'></div>
+
+<script>
+
+ /** PROGRESS LOADER BAR */
+ 
+'use strict';
+const bar = {
+	current: 0,
+	spd: 0,
+	tgt: 0,
+	html: document.getElementById('bar'),	
+	update: () => {
+		if ( !sc3d ){ 
+			return; 
+		}
+		bar.tgt = sc3d.file.current/sc3d.file.total * 100;	
+		sc3d.file.current != sc3d.file.total ? bar.spd = (bar.tgt - bar.current)*0.02 : bar.spd += 0.05;		
+		
+		bar.current += bar.spd;	
+		bar.html.style.width = bar.current + '%';
+
+		if ( bar.current == 100 || bar.current > 100 ){
+			clearInterval( bar.updateTimer );
+			bar.html.parentNode.removeChild(bar.html);
+		}		
+	}		
+}
+bar.updateTimer = setInterval( bar.update, 20 );
+
+</script>
+
+<!----------------------------------------->
+<!--- END CUSTOM CODE --------------------->
+<!----------------------------------------->
+
+
+</body>
+</html>
