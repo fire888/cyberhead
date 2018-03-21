@@ -236,10 +236,10 @@ const initLoadedGeom = () => {
 		sc.scene.add(sc.partHead);		
 		
 		sc.headEyeL = new THREE.Mesh( sc.eyesGeometry, sc.matMirrorBlack );
-		sc.headEyeL.position.set( 19.4, 51, 35);			
+		sc.headEyeL.position.set( 19.4, 50, 35);			
 		sc.partHead.add(sc.headEyeL);
 		sc.headEyeR = sc.headEyeL.clone();
-		sc.headEyeR.position.set( -19.4, 51, 35);
+		sc.headEyeR.position.set( -19.4, 50, 35);
 		sc.headEyeR.scale.x *= -1;	
 		sc.partHead.add(sc.headEyeR);
 			
@@ -532,10 +532,10 @@ const animateHead = (rX, rY) => {
 	}
 	
 	if (sc.headEyeL){	
-			sc.headEyeL.rotation.y += spdYRot*0.25;
-			sc.headEyeL.rotation.x += spdXRot*0.25;	
-			sc.headEyeR.rotation.y += spdYRot*0.25;
-			sc.headEyeR.rotation.x += spdXRot*0.25;			
+			sc.headEyeL.rotation.y += spdYRot*0.65;
+			sc.headEyeL.rotation.x += spdXRot*0.35;	
+			sc.headEyeR.rotation.y += spdYRot*0.65;
+			sc.headEyeR.rotation.x += spdXRot*0.35;			
 	}	
 	
 	sc.trianglesObj.rotation.y += spdYRot*0.05; 
