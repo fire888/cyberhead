@@ -354,44 +354,17 @@ const initScene = () => {
 	let materialTr = new THREE.MeshStandardMaterial({
 		metalness: 0, 
 		roughness: 0.5,
-		opacity: 0.8,	
+		opacity: 0.6,	
 		transparent: true,
 		side: THREE.DoubleSide 
 	})	
-	sc.arrTr = [];
-	sc.trianglesObj = new THREE.Object3D();
-	sc.scene.add(sc.trianglesObj);
-	for ( let i=0; i<200; i++ ){
-		let geom = new THREE.Geometry();
-		let v1 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
-		let v2 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
-		let v3 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
-
-		geom.vertices.push(v1);
-		geom.vertices.push(v2);
-		geom.vertices.push(v3);
-
-		geom.faces.push( new THREE.Face3( 0, 1, 2 ) );
-		geom.computeFaceNormals();
-
-		let mesh= new THREE.Mesh( geom, materialWalls );
-		mesh.scale.set(Math.random()*3+2, Math.random()*3+2, Math.random()*3+2 );
-		mesh.position.set(Math.random()*400-200, Math.random()*300-50, Math.random()*(-400)-200 );		
-		sc.trianglesObj.add(mesh);
-		sc.arrTr.push( {
-			rotXSpd: Math.random()*0.015-0.007,			
-			rotYSpd: Math.random()*0.015-0.007,
-			rotZSpd: Math.random()*0.015-0.007,	
-			posXSpd: Math.random()*0.01-0.005,
-			posYSpd: Math.random()*0.01-0.005, 
-			posZSpd: Math.random()*0.01-0.005,
-			obj: mesh 	
-		} );
-	}
 	
+	sc.arrTr = [];	
 	sc.trianglesObjFront = new THREE.Object3D();
+	sc.trianglesObjFront.position.y = -30;
+	sc.trianglesObjFront.rotation.x = Math.PI/2;	
 	sc.scene.add(sc.trianglesObjFront);	
-	for ( let i=0; i<50; i++ ){
+	for ( let i=0; i<600; i++ ){
 		let geom = new THREE.Geometry();
 		let v1 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
 		let v2 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
@@ -405,20 +378,33 @@ const initScene = () => {
 		geom.computeFaceNormals();
 
 		let mesh= new THREE.Mesh( geom, materialTr );
+		
+		//let rad = () => { if (Math.random()<0.5) {return (40);} else {return (-40);} }; 		
+		let radius = 130;
+		let angle = Math.random()*Math.PI*2;	
+		
 		mesh.scale.set( Math.random()*8+8, Math.random()*8+8, Math.random()*8+8 );
-		mesh.position.set( Math.random()*500-250, Math.random()*100-75, Math.random()*(500)-250 );		
+		mesh.position.set( radius * Math.sin(angle), Math.random()*10-40, radius * Math.cos(angle) );		
+		//console.log(rad() );
 		sc.trianglesObjFront.add(mesh);
 		sc.arrTr.push( {
 			rotXSpd: Math.random()*0.015-0.007,			
 			rotYSpd: Math.random()*0.015-0.007,
 			rotZSpd: Math.random()*0.015-0.007,	
-			posXSpd: Math.random()*0.01-0.005,
-			posYSpd: Math.random()*0.01-0.005, 
-			posZSpd: Math.random()*0.01-0.005,
+			posXSpd: Math.random()*0.001-0.0005,
+			posYSpd: Math.random()*0.001-0.0005, 
+			posZSpd: Math.random()*0.001-0.0005,
+			
+			posXBase: mesh.position.x,
+			posYBase: mesh.position.y,	
+			posZBase: mesh.position.z,	
+			
+			rotXSpdBase: Math.random()*0.015-0.007,			
+			
 			obj: mesh 	
 		} );
 	}	
-		
+	sc.movingTriangles = [];		
 	
 	/** LIGHTS */
 	let light = new THREE.AmbientLight(0x8f98e6, 0.7 );
@@ -461,11 +447,13 @@ const animate = () => {
 	let yRotation = (mouseM.x - window.innerWidth/2)*0.000015;
 	let xRotation = (mouseM.y - window.innerHeight/2)*0.000004;
 	
+	/** walls */
 	if (yRotation > 0){
 		sc.walls.rotation.y = yRotation*0.1;
 
 	}
-
+	
+	/** triangles */	
 	for ( let i=0; i< sc.arrTr.length; i++ ){
 		sc.arrTr[i].obj.position.x += sc.arrTr[i].posXSpd; 
 		sc.arrTr[i].obj.position.y += sc.arrTr[i].posYSpd; 
@@ -473,13 +461,38 @@ const animate = () => {
 		sc.arrTr[i].obj.rotation.x += sc.arrTr[i].rotXSpd; 
 		sc.arrTr[i].obj.rotation.y += sc.arrTr[i].rotYSpd; 
 		sc.arrTr[i].obj.rotation.z += sc.arrTr[i].rotZSpd;  		
-	}		
+	}
+
+	if ( Math.random()> 0.2){
+		
+		let tr = sc.arrTr[ Math.floor(Math.random() * sc.arrTr.length ) ];
+		if ( Math.abs(tr.posYSpd) < 5){
+			let dir = 1.0
+			if ( Math.random()<0.5 ) dir *= -1; 
+			tr.posYSpd = 8 * dir;
+			tr.rotXSpd = 0.1;			
+			sc.movingTriangles.push(tr);
+		}	
+	}
 	
+	for (let i = 0; i < sc.movingTriangles.length; i++  ){
+		if ( Math.abs(sc.movingTriangles[i].obj.position.y) > 1000 ){
+			let tr = sc.movingTriangles[i];
+			tr.posYSpd = Math.random()*0.01-0.005;
+			tr.obj.position.set( tr.posXBase, tr.posYBase,  tr.posZBase );
+			tr.rotXSpd = tr.rotXSpdBase	
+			sc.movingTriangles.splice(i, 1);
+			i--;
+		}
+	}	
+	
+	
+	/** head */ 
 	if (sc.isRotate == true){
 		animateHead( xRotation, yRotation );
 	}	
 	
-	
+	/** composer */
 	let time = sc.clock.getDelta();	
 	
 	if ( sc.matGlitchUniforms ){
@@ -492,6 +505,7 @@ const animate = () => {
 	
 	sc.composer.render();	
 	
+	/** animate */
 	requestAnimationFrame( animate );	
 }
 
@@ -532,16 +546,18 @@ const animateHead = (rX, rY) => {
 	}
 	
 	if (sc.headEyeL){	
-			sc.headEyeL.rotation.y += spdYRot*0.65;
-			sc.headEyeL.rotation.x += spdXRot*0.35;	
-			sc.headEyeR.rotation.y += spdYRot*0.65;
-			sc.headEyeR.rotation.x += spdXRot*0.35;			
+			sc.headEyeL.rotation.y += spdYRot*0.25;
+			sc.headEyeL.rotation.x += spdXRot*0.25;	
+			sc.headEyeR.rotation.y += spdYRot*0.25;
+			sc.headEyeR.rotation.x += spdXRot*0.25;		
 	}	
 	
-	sc.trianglesObj.rotation.y += spdYRot*0.05; 
-	sc.trianglesObj.rotation.x += spdXRot*0.05; 	
+	/** triangles */
+	//sc.trianglesObjFront.rotation.y += spdYRot*0.05; 
+	//sc.trianglesObjFront.rotation.x += spdXRot*0.05; 	
 	sc.trianglesObjFront.rotation.y -= spdYRot*1.55; 
-	sc.trianglesObjFront.rotation.x += spdXRot*1.55; 	
+	sc.trianglesObjFront.rotation.x += spdXRot*1.55;
+			
 }
 
 
