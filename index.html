@@ -23,8 +23,8 @@
 <script src='jsScene/ShaderPass.js'></script>
 <script src='jsScene/RenderPass.js'></script>
 <script src='jsScene/CopyShader.js'></script>
-<script src="jsScene/ScreenShader.js"></script>
-<script src="jsScene/ScreenShader2.js"></script>
+<script src="jsScene/videoShader.js"></script>
+<script src="jsScene/BlurShader.js"></script>
 <script src='jsScene/OBJLoader.js'></script>
 <script src="jsScene/load.js"></script>
 <script src="jsScene/scene.js"></script>
@@ -36,23 +36,18 @@
 <!--- CUSTOM CODE can be deleted ---------->
 <!----------------------------------------->
 
-<div id = 'bar' 
-	 style = ' 
-		width: 0%;
-		background-color: #37b09e; 
-		position: absolute; 
-		top: 100px; 
-		left: 10px; 
-		z-index: 2000; 
-		height: 3px; 
-		display: table; 
-'></div>
+
+
+<!-- PROGRESS BAR LOADING SCENE ----------->
+<div id = 'bar' style = ' width: 0%; background-color: #37b09e; position: absolute; top: 100px; left: 10px; z-index: 200; height: 3px; display: table;'></div>
 
 <script>
-
- /** PROGRESS LOADER BAR */
- 
 'use strict';
+/** 
+ *	total items to load: 'sc3d.file.total'
+ *	current item loaded: 'sc3d.file.current'
+ *	code animate progressBar.    
+ */
 const bar = {
 	current: 0,
 	spd: 0,
@@ -63,7 +58,7 @@ const bar = {
 			return; 
 		}
 		bar.tgt = sc3d.file.current/sc3d.file.total * 100;	
-		sc3d.file.current != sc3d.file.total ? bar.spd = (bar.tgt - bar.current)*0.02 : bar.spd += 0.05;		
+		sc3d.file.current != sc3d.file.total ? bar.spd = (bar.tgt - bar.current)*0.04 : bar.spd += 0.08;		
 		
 		bar.current += bar.spd;	
 		bar.html.style.width = bar.current + '%';
@@ -74,9 +69,35 @@ const bar = {
 		}		
 	}		
 }
-bar.updateTimer = setInterval( bar.update, 20 );
-
+bar.updateTimer = setInterval( bar.update, 20);
 </script>
+
+
+
+
+<!-- BUTTON BLUR --------------------------->
+<button id = "buttonBlur" style = "position: absolute; left: 30px; top: 30px; z-index: 200; width: 50px; ">blur</button>
+
+<script>
+'use strict';
+/** 
+ *	if need BlurEffect: 
+ *		sc3d.blurEffect.on = true; 
+ *	else: 
+ *		sc3d.blurEffect.on = false; 
+ * 	change amount: 
+ *		sc3d.blurEffect.amount = 5.0;  		
+ *
+ *  if need BlurEffect on start window, uncommemt: */
+//sc3d.blurEffect.on = true;
+ 
+const buttonBlur = document.getElementById("buttonBlur");
+buttonBlur.onclick = () => {
+	!sc3d.blurEffect.on ? sc3d.blurEffect.on = true : sc3d.blurEffect.on = false;		
+} 
+</script>
+
+
 
 <!----------------------------------------->
 <!--- END CUSTOM CODE --------------------->

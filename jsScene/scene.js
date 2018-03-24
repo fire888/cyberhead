@@ -8,6 +8,12 @@
  **************************************************/
  
 var sc3d = {
+	/** blur */
+	blurEffect: {
+		amount: 0.2,	
+		on: false,		
+	}, 
+	
 	/** for preloader */	
 	file:{
 		total: 11,
@@ -236,11 +242,16 @@ const initLoadedGeom = () => {
 		sc.scene.add(sc.partHead);		
 		
 		sc.headEyeL = new THREE.Mesh( sc.eyesGeometry, sc.matMirrorBlack );
-		sc.headEyeL.position.set( 19.4, 50, 35);			
+		sc.headEyeL.position.set( 19.4, 50, 35);
 		sc.partHead.add(sc.headEyeL);
+		
 		sc.headEyeR = sc.headEyeL.clone();
+		
+		sc.headEyeL.rotation.y -= 0.02;	
+		
 		sc.headEyeR.position.set( -19.4, 50, 35);
 		sc.headEyeR.scale.x *= -1;	
+		sc.headEyeR.rotation.y += 0.08;		
 		sc.partHead.add(sc.headEyeR);
 			
 		
@@ -354,17 +365,19 @@ const initScene = () => {
 	let materialTr = new THREE.MeshStandardMaterial({
 		metalness: 0, 
 		roughness: 0.5,
-		opacity: 0.6,	
+		opacity: 0.4,	
 		transparent: true,
 		side: THREE.DoubleSide 
 	})	
 	
 	sc.arrTr = [];	
 	sc.trianglesObjFront = new THREE.Object3D();
-	sc.trianglesObjFront.position.y = -30;
+	sc.trianglesObjFront.position.y = 0;
+	sc.trianglesObjFront.position.x = 40;
+	sc.trianglesObjFront.position.z = -20;	
 	sc.trianglesObjFront.rotation.x = Math.PI/2;	
 	sc.scene.add(sc.trianglesObjFront);	
-	for ( let i=0; i<600; i++ ){
+	for ( let i=0; i<800; i++ ){
 		let geom = new THREE.Geometry();
 		let v1 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
 		let v2 = new THREE.Vector3( Math.random(), Math.random(), Math.random() );
@@ -380,13 +393,12 @@ const initScene = () => {
 		let mesh= new THREE.Mesh( geom, materialTr );
 		
 		//let rad = () => { if (Math.random()<0.5) {return (40);} else {return (-40);} }; 		
-		let radius = 130;
+		let radius = 90;
 		let angle = Math.random()*Math.PI*2;	
 		
 		mesh.scale.set( Math.random()*8+8, Math.random()*8+8, Math.random()*8+8 );
-		mesh.position.set( radius * Math.sin(angle), Math.random()*10-40, radius * Math.cos(angle) );		
-		//console.log(rad() );
-		sc.trianglesObjFront.add(mesh);
+		mesh.position.set( radius * Math.sin(angle)+ Math.random()*20-10 , Math.random()*10-40, radius * Math.cos(angle) + Math.random()*20-10 );		
+		sc.trianglesObjFront.add( mesh );
 		sc.arrTr.push( {
 			rotXSpd: Math.random()*0.015-0.007,			
 			rotYSpd: Math.random()*0.015-0.007,
@@ -417,7 +429,7 @@ const initScene = () => {
 	sc.spotLight.penumbra = 0.99;
 	sc.spotLight.decay = 0;
 	sc.spotLight.distance = 2000;
-	sc.spotLight.position.set(100, 200, 400);
+	sc.spotLight.position.set(100, 200, 450);
 	sc.spotLight.lookAt(sc.walls.position);		
 	sc.walls.add(sc.spotLight);
 	
@@ -426,9 +438,19 @@ const initScene = () => {
 	sc.composer = new THREE.EffectComposer( sc.renderer );	
 	sc.composer.addPass( new THREE.RenderPass( sc.scene, sc.camera ) );
 	
-    sc.videoPass = new THREE.ShaderPass(myEffect2);
+    sc.videoPass = new THREE.ShaderPass(videoShader);
     sc.composer.addPass(sc.videoPass);
-	sc.videoPass.renderToScreen = true;	
+	
+	sc.blurPass = new THREE.ShaderPass(BlurShader);
+    sc.composer.addPass(sc.blurPass);
+	if (sc3d.blurEffect.on){
+		sc3d.blurEffect.currentAmount = sc3d.blurEffect.amount;	
+	}else{
+		sc3d.blurEffect.currentAmount = 0.0;			
+	}				
+
+
+	sc.blurPass.renderToScreen = true;	
 
 	sc.composer.render();	
 	
@@ -463,14 +485,14 @@ const animate = () => {
 		sc.arrTr[i].obj.rotation.z += sc.arrTr[i].rotZSpd;  		
 	}
 
-	if ( Math.random()> 0.2){
+	if ( Math.random()> 0.7){
 		
 		let tr = sc.arrTr[ Math.floor(Math.random() * sc.arrTr.length ) ];
 		if ( Math.abs(tr.posYSpd) < 5){
 			let dir = 1.0
 			if ( Math.random()<0.5 ) dir *= -1; 
-			tr.posYSpd = 8 * dir;
-			tr.rotXSpd = 0.1;			
+			tr.posYSpd = 6 * dir;
+			tr.rotXSpd = 0.05;			
 			sc.movingTriangles.push(tr);
 		}	
 	}
@@ -492,16 +514,34 @@ const animate = () => {
 		animateHead( xRotation, yRotation );
 	}	
 	
-	/** composer */
+
 	let time = sc.clock.getDelta();	
 	
+	/** shaderMats */
 	if ( sc.matGlitchUniforms ){
 		sc.matGlitchUniforms.iTime.value += time* 16.0 ;	
 	}
-	
+
+	/** composer */	
 	if ( sc.videoPass ){
 		sc.videoPass.uniforms.iTime.value += time*2.0;	
 	}
+	
+	if ( sc.blurPass ){
+		let ef = sc3d.blurEffect; 
+		if (ef.on == true && ef.currentAmount < ef.amount ){	
+			ef.currentAmount +=0.005;
+			if ( ef.currentAmount > ef.amount) ef.currentAmount = ef.amount;
+		} 
+		if (ef.on == false && ef.currentAmount > 0 ){	
+			ef.currentAmount -=0.005;
+			if ( ef.currentAmount < 0 ) {
+				ef.currentAmount = 0;
+			}		
+		}			
+		sc.blurPass.uniforms.currentAmount.value = ef.currentAmount; 
+	}
+	
 	
 	sc.composer.render();	
 	
@@ -552,16 +592,11 @@ const animateHead = (rX, rY) => {
 			sc.headEyeR.rotation.x += spdXRot*0.25;		
 	}	
 	
-	/** triangles */
-	//sc.trianglesObjFront.rotation.y += spdYRot*0.05; 
-	//sc.trianglesObjFront.rotation.x += spdXRot*0.05; 	
-	sc.trianglesObjFront.rotation.y -= spdYRot*1.55; 
-	sc.trianglesObjFront.rotation.x += spdXRot*1.55;
+	/** triangles */	
+	sc.trianglesObjFront.rotation.y += spdYRot*0.1; 
+	sc.trianglesObjFront.rotation.x -= spdXRot*0.8;
 			
 }
-
-
-
 
 
 /**************************************************;

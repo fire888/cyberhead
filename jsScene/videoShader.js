@@ -1,4 +1,4 @@
-myEffect2 = {
+videoShader = {
         uniforms: {
             "tDiffuse": { value: null },
             "amount":   { value: 1.0 },
